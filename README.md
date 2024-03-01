@@ -9,3 +9,5 @@ rustup default stable
 git clone git@github.com:tadejpetric/watersim.git
 cargo init --bin
 
+# Running the program
+cargo run -- /home/tadej/programming/watersim/config.txt

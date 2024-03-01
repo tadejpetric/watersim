@@ -1,0 +1,4 @@
+shader_dir /home/tadej/programming/watersim/src/shaders
+grid_size 1000
+scale 1.0
+speed 1.0
