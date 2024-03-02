@@ -1,6 +1,8 @@
+use std::path::PathBuf;
+
 #[derive(Debug)]
 pub struct Config {
-    pub shader_dir: String,
+    pub shader_dir: PathBuf,
     pub grid_size: u32,
     pub scale: f32,
     pub speed: f32,
@@ -9,7 +11,7 @@ pub struct Config {
 pub fn read_config(config_fn: &str) -> Config {
     use std::fs::read_to_string;
 
-    let mut shader_dir: Option<String> = None;
+    let mut shader_dir: Option<PathBuf> = None;
     let mut grid_size: Option<u32> = None;
     let mut scale: Option<f32> = None;
     let mut speed: Option<f32> = None;
@@ -22,28 +24,28 @@ pub fn read_config(config_fn: &str) -> Config {
 
         match property {
             "shader_dir" => {
-                std::debug_assert!(shader_dir.is_none());
-                shader_dir = Some(value.to_string());
+                std::debug_assert!(shader_dir.is_none(), "shader_dir provided twice in the config");
+                shader_dir = Some(PathBuf::from(value));
             }
             "grid_size" => {
-                std::debug_assert!(grid_size.is_none());
+                std::debug_assert!(grid_size.is_none(), "grid_size provided twice in the config");
                 grid_size = Some(value.parse().unwrap());
             }
             "scale" => {
-                std::debug_assert!(scale.is_none());
+                std::debug_assert!(scale.is_none(), "scale provided twice in the config");
                 scale = Some(value.parse().unwrap());
             }
             "speed" => {
-                std::debug_assert!(speed.is_none());
+                std::debug_assert!(speed.is_none(), "speed provided twice in the config");
                 speed = Some(value.parse().unwrap());
             }
             _ => panic!("Unknown property: {}", property),
         }
     }
     Config {
-        shader_dir: shader_dir.unwrap(),
-        grid_size: grid_size.unwrap(),
-        scale: scale.unwrap(),
-        speed: speed.unwrap(),
+        shader_dir: shader_dir.expect("shader_dir not provided in config"),
+        grid_size: grid_size.expect("grid_size not provided in config"),
+        scale: scale.expect("scale not provided in config"),
+        speed: speed.expect("speed not provided in config"),
     }
 }

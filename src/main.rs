@@ -3,6 +3,7 @@
 
 use glow::*;
 mod config;
+mod shader_utils;
 
 
 fn main() {
@@ -14,7 +15,7 @@ fn main() {
 
     unsafe {
         // Create a context from a sdl2 window
-        let (gl, shader_version, window, mut events_loop, _context) = {
+        let (gl, window, mut events_loop, _context) = {
             let sdl = sdl2::init().unwrap();
             let video = sdl.video().unwrap();
             let gl_attr = video.gl_attr();
@@ -30,7 +31,7 @@ fn main() {
             let gl =
                 glow::Context::from_loader_function(|s| video.gl_get_proc_address(s) as *const _);
             let event_loop = sdl.event_pump().unwrap();
-            (gl, "#version 130", window, event_loop, gl_context)
+            (gl, window, event_loop, gl_context)
         };
 
         let vertex_array = gl
@@ -40,37 +41,19 @@ fn main() {
 
         let program = gl.create_program().expect("Cannot create program");
 
-        let (vertex_shader_source, fragment_shader_source) = (
-            r#"const vec2 verts[3] = vec2[3](
-                vec2(0.5f, 1.0f),
-                vec2(0.0f, 0.0f),
-                vec2(1.0f, 0.0f)
-            );
-            out vec2 vert;
-            void main() {
-                vert = verts[gl_VertexID];
-                gl_Position = vec4(vert - 0.5, 0.0, 1.0);
-            }"#,
-            r#"precision mediump float;
-            in vec2 vert;
-            out vec4 color;
-            void main() {
-                color = vec4(vert, 0.5, 1.0);
-            }"#,
-        );
-
+        // Attach shaders to the program
         let shader_sources = [
-            (glow::VERTEX_SHADER, vertex_shader_source),
-            (glow::FRAGMENT_SHADER, fragment_shader_source),
+            shader_utils::read_shader(config.shader_dir.join( "shader.vert"), glow::VERTEX_SHADER),
+            shader_utils::read_shader(config.shader_dir.join( "shader.frag"), glow::FRAGMENT_SHADER),
         ];
 
         let mut shaders = Vec::with_capacity(shader_sources.len());
 
-        for (shader_type, shader_source) in shader_sources.iter() {
+        for (shader_source, shader_type) in shader_sources.iter() {
             let shader = gl
                 .create_shader(*shader_type)
                 .expect("Cannot create shader");
-            gl.shader_source(shader, &format!("{}\n{}", shader_version, shader_source));
+            gl.shader_source(shader, &shader_source);
             gl.compile_shader(shader);
             if !gl.get_shader_compile_status(shader) {
                 panic!("{}", gl.get_shader_info_log(shader));
@@ -79,6 +62,7 @@ fn main() {
             shaders.push(shader);
         }
 
+        // Link the program and cleanup the shaders
         gl.link_program(program);
         if !gl.get_program_link_status(program) {
             panic!("{}", gl.get_program_info_log(program));
@@ -89,7 +73,15 @@ fn main() {
             gl.delete_shader(shader);
         }
 
+        // Run the program.
         gl.use_program(Some(program));
+
+        let mut time: f32 = 0.0;
+        let uniform_location = gl.get_uniform_location(program, "time");
+        // See also `uniform_n_i32`, `uniform_n_u32`, `uniform_matrix_4_f32_slice` etc.
+        gl.uniform_1_f32(uniform_location.as_ref(), time);
+
+
         gl.clear_color(0.1, 0.2, 0.3, 1.0);
 
         {
@@ -107,7 +99,8 @@ fn main() {
                 gl.clear(glow::COLOR_BUFFER_BIT);
                 gl.draw_arrays(glow::TRIANGLES, 0, 3);
                 window.gl_swap_window();
-
+                time += 0.1;
+                gl.uniform_1_f32(uniform_location.as_ref(), time);
                 if !running {
                     gl.delete_program(program);
                     gl.delete_vertex_array(vertex_array);
