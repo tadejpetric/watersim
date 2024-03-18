@@ -7,25 +7,6 @@ mod camera;
 mod config;
 mod shader_utils;
 
-#[derive(Debug)]
-struct Camera {
-    // Do not manage roll.
-    position: glm::Vec3,
-    direction: glm::Vec3,
-}
-
-fn create_camera(position: glm::Vec3, direction: glm::Vec3) -> Camera {
-    Camera {
-        position,
-        direction,
-    }
-}
-
-fn look_at(camera: &Camera) -> glm::Mat4 {
-    let up = glm::Vec3::new(0.0, 1.0, 0.0);
-    glm::look_at(&camera.position, &(camera.position + camera.direction), &up)
-}
-
 unsafe fn mat4_to_array(mat: glm::Mat4) -> [f32; 16] {
     std::mem::transmute::<[[f32; 4]; 4], [f32; 16]>(mat.into())
 }
@@ -134,38 +115,33 @@ fn main() {
             gl.delete_shader(shader);
         }
 
-        let mut camera = create_camera(
+        let mut camera = camera::create_camera(
             glm::Vec3::new(0.0, 0.0, 1.0),
-            glm::Vec3::new(0.0, 0.0, -1.0),
+            glm::Vec3::new(0.1, 0.0, -0.7),
         );
 
-        let perspective = mat4_to_array(glm::perspective(1.0, 1.0, 0.01, 10.0));
-        
         
         gl.enable(glow::CULL_FACE);
         gl.cull_face(glow::BACK);
         // Run the program.
         gl.use_program(Some(program));
-
+        
         let mut time: f32 = 0.0;
         let time_location = gl.get_uniform_location(program, "time");
         // See also `uniform_n_i32`, `uniform_n_u32`, `uniform_matrix_4_f32_slice` etc.
         gl.uniform_1_f32(time_location.as_ref(), time);
-
+        
         let camera_location = gl.get_uniform_location(program, "camera");
-        let camera_matrix = look_at(&camera);
+        let camera_matrix = camera.look_at();
         gl.uniform_matrix_4_f32_slice(
             camera_location.as_ref(),
             false,
             &mat4_to_array(camera_matrix),
         );
-
+        
+        let perspective = mat4_to_array(glm::perspective(1.0, 1.0, 0.01, 10.0));
         let perspective_location = gl.get_uniform_location(program, "perspective");
-        gl.uniform_matrix_4_f32_slice(
-            perspective_location.as_ref(),
-            false,
-            &perspective,
-        );
+        gl.uniform_matrix_4_f32_slice(perspective_location.as_ref(), false, &perspective);
 
         let (vbo, vao) = create_vertex_buffer(&gl, config.grid_size, config.scale);
 
@@ -180,16 +156,15 @@ fn main() {
                         match event {
                             sdl2::event::Event::KeyDown { keycode, .. } => {
                                 println!("Key down: {:?}", keycode);
-                                let (position_update, direction_update) =
-                                    camera::camera_change(keycode);
+                                if let Some(keycode) = keycode {
+                                    camera.camera_change(keycode);
+                                }
 
-                                camera.position += position_update * 0.01;
-                                camera.direction += direction_update * 0.1;
                                 println!("Camera {:?}", camera);
                                 gl.uniform_matrix_4_f32_slice(
                                     camera_location.as_ref(),
                                     false,
-                                    &mat4_to_array(look_at(&camera)),
+                                    &mat4_to_array(camera.look_at()),
                                 );
                             }
                             sdl2::event::Event::Quit { .. } => running = false,
