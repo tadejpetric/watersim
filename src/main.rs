@@ -7,6 +7,7 @@ mod camera;
 mod config;
 mod shader_utils;
 
+#[derive(Debug)]
 struct Camera {
     // Do not manage roll.
     position: glm::Vec3,
@@ -99,11 +100,6 @@ fn main() {
             (gl, window, event_loop, gl_context)
         };
 
-        //let vertex_array = gl
-        //    .create_vertex_array()
-        //    .expect("Cannot create vertex array");
-        //gl.bind_vertex_array(Some(vertex_array));
-
         let program = gl.create_program().expect("Cannot create program");
 
         // Attach shaders to the program
@@ -142,6 +138,12 @@ fn main() {
             glm::Vec3::new(0.0, 0.0, 1.0),
             glm::Vec3::new(0.0, 0.0, -1.0),
         );
+
+        let perspective = mat4_to_array(glm::perspective(1.0, 1.0, 0.01, 10.0));
+        
+        
+        gl.enable(glow::CULL_FACE);
+        gl.cull_face(glow::BACK);
         // Run the program.
         gl.use_program(Some(program));
 
@@ -156,6 +158,13 @@ fn main() {
             camera_location.as_ref(),
             false,
             &mat4_to_array(camera_matrix),
+        );
+
+        let perspective_location = gl.get_uniform_location(program, "perspective");
+        gl.uniform_matrix_4_f32_slice(
+            perspective_location.as_ref(),
+            false,
+            &perspective,
         );
 
         let (vbo, vao) = create_vertex_buffer(&gl, config.grid_size, config.scale);
@@ -176,6 +185,7 @@ fn main() {
 
                                 camera.position += position_update * 0.01;
                                 camera.direction += direction_update * 0.1;
+                                println!("Camera {:?}", camera);
                                 gl.uniform_matrix_4_f32_slice(
                                     camera_location.as_ref(),
                                     false,
