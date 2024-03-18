@@ -12,3 +12,7 @@ Waves are a linear combination of 2 sine waves, one in the x direction and one i
 
 ## Colours
 There's two colours, darker and bright. They are determined by the angle to the light.
+
+
+#
+![Perspective working](images/image-1.png)

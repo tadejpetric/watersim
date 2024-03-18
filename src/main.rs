@@ -34,6 +34,7 @@ unsafe fn create_vertex_buffer(
             plane_vertices.extend_from_slice(&[x0, y1, x1, y0, x1, y1]);
         }
     }
+
     let plane_vertices_u8: &[u8] = core::slice::from_raw_parts(
         plane_vertices.as_ptr() as *const u8,
         plane_vertices.len() * core::mem::size_of::<f32>(),
@@ -116,21 +117,20 @@ fn main() {
         }
 
         let mut camera = camera::create_camera(
-            glm::Vec3::new(0.0, 0.0, 1.0),
-            glm::Vec3::new(0.1, 0.0, -0.7),
+            glm::Vec3::new(0.0402, -0.93128, 0.83396),
+            glm::Vec3::new(-0.01503, 0.722822, -0.69087),
         );
 
-        
         gl.enable(glow::CULL_FACE);
         gl.cull_face(glow::BACK);
         // Run the program.
         gl.use_program(Some(program));
-        
+
         let mut time: f32 = 0.0;
         let time_location = gl.get_uniform_location(program, "time");
         // See also `uniform_n_i32`, `uniform_n_u32`, `uniform_matrix_4_f32_slice` etc.
         gl.uniform_1_f32(time_location.as_ref(), time);
-        
+
         let camera_location = gl.get_uniform_location(program, "camera");
         let camera_matrix = camera.look_at();
         gl.uniform_matrix_4_f32_slice(
@@ -138,7 +138,7 @@ fn main() {
             false,
             &mat4_to_array(camera_matrix),
         );
-        
+
         let perspective = mat4_to_array(glm::perspective(1.0, 1.0, 0.01, 10.0));
         let perspective_location = gl.get_uniform_location(program, "perspective");
         gl.uniform_matrix_4_f32_slice(perspective_location.as_ref(), false, &perspective);

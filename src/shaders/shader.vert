@@ -9,19 +9,20 @@ const vec2 verts[3] = vec2[3](
 
 uniform float time;
 uniform mat4 camera;
-uniform mat4 persepctive;
+uniform mat4 perspective;
 
 in vec2 in_vert;
 out vec2 vert;
 
 void main() {
     mat2 rot = mat2(
-        cos(time), -sin(time),
-        sin(time), cos(time)
+       cos(time), -sin(time),
+       sin(time), cos(time)
     );
     vert = in_vert - 0.5;
     //vert = rot * vert;
     float z = sin(vert.x*5.0 + time)/30.0;
     z += sin(vert.y*6.0 + 2.0*time)/20.0;
-    gl_Position = camera * vec4(vert, z, 1.0);
+    gl_Position = perspective * camera * vec4(vert, z, 1.0);
+
 }
