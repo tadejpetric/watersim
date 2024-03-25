@@ -3,8 +3,11 @@
 
 use glow::*;
 extern crate nalgebra_glm as glm;
+use rand::Rng;
+
 mod camera;
 mod config;
+mod opengl_utils;
 mod shader_utils;
 
 unsafe fn mat4_to_array(mat: glm::Mat4) -> [f32; 16] {
@@ -63,24 +66,7 @@ fn main() {
 
     unsafe {
         // Create a context from a sdl2 window
-        let (gl, window, mut events_loop, _context) = {
-            let sdl = sdl2::init().unwrap();
-            let video = sdl.video().unwrap();
-            let gl_attr = video.gl_attr();
-            gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-            gl_attr.set_context_version(3, 0);
-            let window = video
-                .window("Hello triangle!", 960, 1050)
-                .opengl()
-                .resizable()
-                .build()
-                .unwrap();
-            let gl_context = window.gl_create_context().unwrap();
-            let gl =
-                glow::Context::from_loader_function(|s| video.gl_get_proc_address(s) as *const _);
-            let event_loop = sdl.event_pump().unwrap();
-            (gl, window, event_loop, gl_context)
-        };
+        let (gl, window, mut events_loop, _context) = opengl_utils::create_context();
 
         let program = gl.create_program().expect("Cannot create program");
 
@@ -90,89 +76,58 @@ fn main() {
             shader_utils::read_shader(config.shader_dir.join("shader.frag"), glow::FRAGMENT_SHADER),
         ];
 
-        let mut shaders = Vec::with_capacity(shader_sources.len());
-
-        for (shader_source, shader_type) in shader_sources.iter() {
-            let shader = gl
-                .create_shader(*shader_type)
-                .expect("Cannot create shader");
-            gl.shader_source(shader, &shader_source);
-            gl.compile_shader(shader);
-            if !gl.get_shader_compile_status(shader) {
-                panic!("{}", gl.get_shader_info_log(shader));
-            }
-            gl.attach_shader(program, shader);
-            shaders.push(shader);
-        }
-
-        // Link the program and cleanup the shaders
-        gl.link_program(program);
-        if !gl.get_program_link_status(program) {
-            panic!("{}", gl.get_program_info_log(program));
-        }
-
-        for shader in shaders {
-            gl.detach_shader(program, shader);
-            gl.delete_shader(shader);
-        }
+        opengl_utils::attach_shaders(&gl, &shader_sources, program);
 
         let mut camera = camera::create_camera(
             glm::Vec3::new(0.0402, -0.93128, 0.83396),
             glm::Vec3::new(-0.01503, 0.722822, -0.69087),
         );
 
-        gl.enable(glow::CULL_FACE);
-        gl.cull_face(glow::BACK);
         // Run the program.
         gl.use_program(Some(program));
 
+        // Add uniforms.
         let mut time: f32 = 0.0;
         let time_location = gl.get_uniform_location(program, "time");
-        // See also `uniform_n_i32`, `uniform_n_u32`, `uniform_matrix_4_f32_slice` etc.
         gl.uniform_1_f32(time_location.as_ref(), time);
 
-        let camera_location = gl.get_uniform_location(program, "camera");
         let camera_matrix = camera.look_at();
+        let camera_location = gl.get_uniform_location(program, "camera");
         gl.uniform_matrix_4_f32_slice(
             camera_location.as_ref(),
             false,
             &mat4_to_array(camera_matrix),
         );
 
-        let perspective = mat4_to_array(glm::perspective(1.0, 1.0, 0.01, 10.0));
+        let perspective = glm::perspective(1.0, 1.0, 0.1, 1000.0);
         let perspective_location = gl.get_uniform_location(program, "perspective");
-        gl.uniform_matrix_4_f32_slice(perspective_location.as_ref(), false, &perspective);
+        gl.uniform_matrix_4_f32_slice(
+            perspective_location.as_ref(),
+            false,
+            &mat4_to_array(perspective),
+        );
 
         let (vbo, vao) = create_vertex_buffer(&gl, config.grid_size, config.scale);
 
+        // Background colour.
         gl.clear_color(0.1, 0.2, 0.3, 1.0);
 
         {
             let mut running = true;
             while running {
-                let timer = std::time::Instant::now();
-                {
-                    for event in events_loop.poll_iter() {
-                        match event {
-                            sdl2::event::Event::KeyDown { keycode, .. } => {
-                                println!("Key down: {:?}", keycode);
-                                if let Some(keycode) = keycode {
-                                    camera.camera_change(keycode);
-                                }
+                running = opengl_utils::process_keyboard_events(&mut camera, &mut events_loop);
 
-                                println!("Camera {:?}", camera);
-                                gl.uniform_matrix_4_f32_slice(
-                                    camera_location.as_ref(),
-                                    false,
-                                    &mat4_to_array(camera.look_at()),
-                                );
-                            }
-                            sdl2::event::Event::Quit { .. } => running = false,
-                            _ => {}
-                        }
-                    }
-                }
+                // Update uniforms.
+                gl.uniform_matrix_4_f32_slice(
+                    camera_location.as_ref(),
+                    false,
+                    &mat4_to_array(camera.look_at()),
+                );
 
+                time += config.speed;
+                gl.uniform_1_f32(time_location.as_ref(), time);
+
+                // Draw the scene.
                 gl.clear(glow::COLOR_BUFFER_BIT);
                 gl.draw_arrays(
                     glow::TRIANGLES,
@@ -180,15 +135,13 @@ fn main() {
                     12 * (config.grid_size * config.grid_size) as i32,
                 );
                 window.gl_swap_window();
-                time += 0.01;
-                gl.uniform_1_f32(time_location.as_ref(), time);
+
+                // Cleanup.
                 if !running {
                     gl.delete_program(program);
                     gl.delete_vertex_array(vao);
                     gl.delete_buffer(vbo);
                 }
-
-                //println!("Frame time: {} ms", timer.elapsed().as_millis());
             }
         }
     }

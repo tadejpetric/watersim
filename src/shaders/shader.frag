@@ -6,6 +6,9 @@ precision mediump float;
 uniform float time;
 vec3 light_dir = normalize(vec3(1.0, 0.0, 2.0));
 
+// Angle to the normal vector beyond which the light is totally reflected.
+const float total_reflection_angle = 0.837758;
+
 in vec2 vert;
 out vec4 color;
 
