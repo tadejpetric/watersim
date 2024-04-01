@@ -1,43 +1,72 @@
 #version 460
 
 precision mediump float;
-
+const int iter = 32;
+uniform float num_params;
+uniform float a[iter];
+uniform float b[iter];
+uniform float c[iter];
+uniform float d[iter];
 
 uniform float time;
-vec3 light_dir = normalize(vec3(1.0, 0.0, 2.0));
+uniform vec3 camera_pos;
 
+vec3 light_dir = normalize(vec3(-50.0, -50.0, 5.0));
+const vec3 darker = vec3(0.00, 0.03, 0.23);
+const vec3 brighter = vec3(0.48, 0.54, 0.96);
+
+const vec3 sun_colour = vec3(1.0, 1.0, 1.0);
+const float sun_size_full = 0.2;
+const float sun_size_min = 0.1;
+const float sun_intensity = 0.9;
 // Angle to the normal vector beyond which the light is totally reflected.
 const float total_reflection_angle = 0.837758;
 
-in vec2 vert;
+in vec3 water_surface;
 out vec4 color;
 
 float amplify(float x) {
-    return x*x*x*x;
+    return x;
+}
+
+vec3 project(vec3 a, vec3 b) {
+    // Assuming b is normalized.
+    return dot(a, b) * b;
+}
+
+float soft_sun(float angle) {
+    return 1.0 - smoothstep(sun_size_min, sun_size_full, angle);
 }
 
 void main() {
-    //sin(vert.x*5.0 + time)/3.0
-    float derivative_x = 5.0*cos(vert.x*5.0 + time)/30.0;
-    float derivative_y = 6.0*cos(vert.y*6.0 + 2.0*time)/20.0;
-    vec3 normal = normalize(vec3(-derivative_x, -derivative_y, 1.0));
+    float partial_x = 0.0;
+    float partial_y = 0.0;
+
+    for (int i = 0; i < iter; i++) {
+        partial_x += a[i] * b[i] * cos(b[i] * water_surface.x + c[i] * water_surface.y + d[i] * time);
+        partial_y += a[i] * c[i] * cos(b[i] * water_surface.x + c[i] * water_surface.y + d[i] * time);
+    }
+
+    vec3 normal = normalize(vec3(-partial_x, -partial_y, 1.0));
+    
+    // Water shading
     float light = dot(normal, light_dir);
     light = amplify(light);
 
-    //vec2 darker = vec2(0.24, 0.37);
-    //vec2 brighter = vec2(0.64, 0.81);
-    vec3 darker = vec3(0.00, 0.03, 0.23);
-    vec3 brighter = vec3(0.48, 0.54, 0.96);
-    vec3 choice = mix(darker, brighter, light);
-    //vec2 choice = mix(darker, brighter, light);
-    //vec3 darker = vec3(0.0, 0.0, 0.0);
-    //vec3 brighter = vec3(1.0, 1.0, 1.0);
-    //vec3 choice = mix(darker, brighter, light);
-    // vec2 choice =vec2(0.0, 0.0);
-    // if (light < 0.7) {
-    //     choice = vec2(1.0, 1.0);
-    // }
-    //float angle = atan(normal.y, normal.x)/3.14159;
-    color = vec4(choice , 1.0);
+
+    vec3 shaded_colour = mix(darker, brighter, light);
+
+    // Sun reflection.
+    vec3 view_dir = normalize(camera_pos - water_surface);
+    float angle_to_normal = acos(dot(normal, view_dir));
+    if (angle_to_normal > total_reflection_angle) {
+        vec3 reflected_view = normalize(view_dir - 2.0 * project(view_dir, normal));
+        float angle_to_sun = acos(dot(reflected_view, light_dir));
+        float intensity = soft_sun(angle_to_sun);
+        shaded_colour = mix(shaded_colour, sun_colour, intensity);
+
+    }
+    
+    color = vec4(shaded_colour , 1.0);
     //color = vec4(vert, 0.5, 1.0);
 }

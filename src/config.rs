@@ -6,6 +6,7 @@ pub struct Config {
     pub grid_size: u32,
     pub scale: f32,
     pub speed: f32,
+    pub num_params: u32,
 }
 
 pub fn read_config(config_fn: &str) -> Config {
@@ -15,6 +16,7 @@ pub fn read_config(config_fn: &str) -> Config {
     let mut grid_size: Option<u32> = None;
     let mut scale: Option<f32> = None;
     let mut speed: Option<f32> = None;
+    let mut num_params: Option<u32> = None;
 
     for line in read_to_string(config_fn).unwrap().lines() {
         let mut parts = line.split_whitespace();
@@ -39,6 +41,10 @@ pub fn read_config(config_fn: &str) -> Config {
                 std::debug_assert!(speed.is_none(), "speed provided twice in the config");
                 speed = Some(value.parse().unwrap());
             }
+            "num_params" => {
+                std::debug_assert!(num_params.is_none(), "num_params provided twice in the config");
+                num_params = Some(value.parse().unwrap());
+            }
             _ => panic!("Unknown property: {}", property),
         }
     }
@@ -47,5 +53,6 @@ pub fn read_config(config_fn: &str) -> Config {
         grid_size: grid_size.expect("grid_size not provided in config"),
         scale: scale.expect("scale not provided in config"),
         speed: speed.expect("speed not provided in config"),
+        num_params: num_params.expect("num_params not provided in config"),
     }
 }

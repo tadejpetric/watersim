@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub struct Camera {
     // Do not manage roll.
-    position: glm::Vec3,
+    pub position: glm::Vec3,
     direction: glm::Vec3,
 }
 
@@ -52,7 +52,6 @@ impl Camera {
         }
 
         let rotation_speed = 0.03;
-        println!("{:?}", self.direction);
         self.direction = match keycode {
             sdl2::keyboard::Keycode::Up => rotate_down(rotation_speed, &self.direction),
             sdl2::keyboard::Keycode::Down => rotate_down(-rotation_speed, &self.direction),
