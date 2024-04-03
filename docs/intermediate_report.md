@@ -23,7 +23,7 @@ The program proceeds with the following sequence of steps:
 
 ## Algorithm
 
-The algorithm for the task has to be fairly sensitive to allow for real time rendering. The water is made up of millions of triangles that have to be drawn in only ~10ms. The simplest, but very successful, approach is the "sum of sines" approximation, as seen in [GPU Gems](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models). The technique was the state of the art for real time water simulation 20 years ago and, due to the low performance of the machines, was often used with very few waves and triangles. Prior to that, they usually did not bother simulating waves at all and only presented them as a flat sheet (perhaps moving and tilting) with a moving texture.
+The algorithm for the task has to be fairly simple to allow for real time rendering. The water is made up of millions of triangles that have to be drawn in only ~10ms. The simplest, but very successful, approach is the "sum of sines" approximation, as seen in [GPU Gems](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models). The technique was the state of the art for real time water simulation 20 years ago and, due to the low performance of the machines, was often used with very few waves and triangles. Prior to that, they usually did not bother simulating waves at all and only presented them as a flat sheet (perhaps moving and tilting) with a moving texture.
 
 ### Vertex shader
 The Sum of Sines algorithm is quite simple: water is presented as the graph of a 2D function of the form
@@ -32,7 +32,7 @@ $$
 $$
 
 We subdivide the surface into triangles and send it off to the shader along with the parameters a, b, c and d. Currently, N, the number of waves, is fixed and hardcoded as GLSL does not *really* have loops - if one wants to index the arrays in a for loop  
-for (int i = i; i < N; ++i) a[i]  
+for (int i = 0; i < N; ++i) a[i]  
 Then the value N must be a compile time constant. The shader compilation process then unrolls the loop into an explicit sequence of steps.
 
 Then we use the vertex shader to apply the transformation to the vertex. We start with z=0, loop over the every wave and add the value of the wave at this point in space. Then we use the `gl_Position` variable to store the final position of the vertex. This is also the point where we multiply with the camera and perspective matrices - for OpenGL the camera is always at the center, so the camera matrix moves every vertex (analogous to moving the camera). The perspective matrix then moves the vertices furthest away to be closest together. These features are very natural to OpenGL, which can be seen by `gl_Position` being a 4 element vector (rather than 3); it's a vector in projective space, where perspective and camera transformations can be done via simple matrix multiplication.  
