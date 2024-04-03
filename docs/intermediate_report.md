@@ -63,7 +63,7 @@ Improved the colour model of the program. I also improved the camera movement, b
 ![Updated colours](images/image-2.png)
 
 Large scale expansion of the water surface. It still works <16ms per frame (which is 60FPS, the limit of my windowing system as you have to jump through a lot of hoops to disable Vsync on it).  
-![large scale](images/image-2.png)
+![large scale](images/image-3.png)
 
 Reworked lighting system again. Waves are now a linear combination of 32 randomly chosen waves (with frequency inversely proportional to amplitude). The sun reflection has also been added. This is the current state of the program.  
 ![Current state](images/image-4.png)
