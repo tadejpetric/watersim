@@ -11,12 +11,12 @@ uniform float d[iter];
 uniform float time;
 uniform vec3 camera_pos;
 
-vec3 light_dir = normalize(vec3(-50.0, -50.0, 5.0));
+vec3 light_dir = normalize(vec3(-20.0, -20.0, 5.0));
 const vec3 darker = vec3(0.00, 0.03, 0.23);
 const vec3 brighter = vec3(0.48, 0.54, 0.96);
 
 const vec3 sun_colour = vec3(1.0, 1.0, 1.0);
-const float sun_size_full = 0.2;
+const float sun_size_full = 0.3;
 const float sun_size_min = 0.1;
 const float sun_intensity = 0.9;
 // Angle to the normal vector beyond which the light is totally reflected.
