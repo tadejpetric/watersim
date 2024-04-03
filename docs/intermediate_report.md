@@ -27,9 +27,9 @@ The algorithm for the task has to be fairly sensitive to allow for real time ren
 
 ### Vertex shader
 The Sum of Sines algorithm is quite simple: water is presented as the graph of a 2D function of the form
-$$
+```math
     f(x,y) = \sum_{i=0}^N a_i\sin(b_i\cdot x + c_i\cdot y + d_i\cdot t)
-$$
+```
 
 We subdivide the surface into triangles and send it off to the shader along with the parameters a, b, c and d. Currently, N, the number of waves, is fixed and hardcoded as GLSL does not *really* have loops - if one wants to index the arrays in a for loop  
 for (int i = i; i < N; ++i) a[i]  
@@ -42,9 +42,9 @@ Regardless, the vertex shader outputs the water surface (3D point in space) into
 The next step is the fragment shader. This is responsible for the colouring, which is a bit more involved at the moment.
 
 We first set various parameters of the shader. One such parameter is the position of the sun. Without simulating shadows, we could not see anything (the water surface would seem like a flat sheet - the shadows give us the features and impression of depth). To compute the shadows at a certain point in space, we first need to compute the normal to the surface. That's because if the normal points directly towards the sun, the surface will be maximally bright. If it points away, it's darker (like how the day is brightest at noon and gets darker as sun starts pointing at a slanted angle). Again we loop through every wave at a point in space, compute the partial derivative of a wave and add them up. We compute the partial derivatives by x and y, which are then used to get the normal to the surface
-$$
+```math
 \left(-\frac{\partial z}{\partial x}, -\frac{\partial z}{\partial y}, 1\right)
-$$
+```
 Then we compute the dot product with the direction of the sun to determine how much to shade.
 
 A similar process is used for sun reflections.  
