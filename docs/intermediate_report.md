@@ -53,19 +53,19 @@ For a better quality, we use two sun sizes - a larger one, and a smaller one. If
 
 ## Pictures
 
-The initial working state of the program. I represented water surface as a sum of two perpendicular waves. The colours were black and white (white pointing towards the sun and black away). The perspective was not working yet. It looks very weird, like a rotating square prism.
+The initial working state of the program. I represented water surface as a sum of two perpendicular waves. The colours were black and white (white pointing towards the sun and black away). The perspective was not working yet. It looks very weird, like a rotating square prism.  
 ![Initial with black and white shading for clarity](images/image.png)
 
-The same image with perspective working and minor modifications.
+The same image with perspective working and minor modifications.  
 ![Perspective working](images/image-1.png)
 
-Improved the colour model of the program. I also improved the camera movement, but that cannot be seen in the picture (the movement is now relative, as in programs like Blender or Autodesk Maya. Before it was determined by "current position" and "look at position". You moved the coordinates of each with the keyboard. Now it is "current position" and "look at direction" - pressing "W" will move the camera forward in the direction camera is facing in, rather than moving the "look at" coordinates, which is much more intuitive to use).
+Improved the colour model of the program. I also improved the camera movement, but that cannot be seen in the picture (the movement is now relative, as in programs like Blender or Autodesk Maya. Before it was determined by "current position" and "look at position". You moved the coordinates of each with the keyboard. Now it is "current position" and "look at direction" - pressing "W" will move the camera forward in the direction camera is facing in, rather than moving the "look at" coordinates, which is much more intuitive to use).  
 ![Updated colours](images/image-2.png)
 
-Large scale expansion of the water surface. It still works <16ms per frame (which is 60FPS, the limit of my windowing system as you have to jump through a lot of hoops to disable Vsync on it).
+Large scale expansion of the water surface. It still works <16ms per frame (which is 60FPS, the limit of my windowing system as you have to jump through a lot of hoops to disable Vsync on it).  
 ![large scale](images/image-2.png)
 
-Reworked lighting system again. Waves are now a linear combination of 32 randomly chosen waves (with frequency inversely proportional to amplitude). The sun reflection has also been added. This is the current state of the program.
+Reworked lighting system again. Waves are now a linear combination of 32 randomly chosen waves (with frequency inversely proportional to amplitude). The sun reflection has also been added. This is the current state of the program.  
 ![Current state](images/image-4.png)
 
 ## Current state
