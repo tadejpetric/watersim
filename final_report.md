@@ -97,8 +97,12 @@ The equations for the gerstner waves are a bit more complex and the surface is n
 
 The following are the equations for a single gerstner wave (in their simplest form):  
 ```math
-X=x−Q⋅A⋅sin(k⋅(x+c⋅t))  
-Y=y−Q⋅A⋅cos⁡(k⋅(x+c⋅t))  
+X=x−Q⋅A⋅sin(k⋅(x+c⋅t))
+```
+```math
+Y=y−Q⋅A⋅cos⁡(k⋅(x+c⋅t))
+```
+```math
 Z=A⋅cos⁡(k⋅(x+c⋅t))
 ```
 
