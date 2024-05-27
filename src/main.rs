@@ -93,14 +93,6 @@ fn get_parameters(num_params: u32) -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>) {
         d.push(1.0);
     }
 
-
-    // float z = sin(vert.x*5.0 + time)/30.0;
-    // z += sin(vert.y*6.0 + 2.0*time)/20.0;
-    // a = vec![1.0/30.0, 1.0/20.0];
-    //b = vec![5.0, 0.0];
-    //c = vec![0.0, 6.0];
-    //d = vec![1.0, 2.0];
-
     (a, b, c, d)
 }
 fn main() {

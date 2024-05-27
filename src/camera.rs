@@ -37,7 +37,7 @@ impl Camera {
             sdl2::keyboard::Keycode::Q => -compute_up(&self.direction, &global_up),
             _ => glm::Vec3::new(0.0, 0.0, 0.0),
         };
-        let position_speed = 0.05;
+        let position_speed = 0.1;
         self.position += position_update * position_speed;
 
         fn rotate_down(angle: f32, direction: &glm::Vec3) -> glm::Vec3 {

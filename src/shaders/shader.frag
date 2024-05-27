@@ -1,7 +1,7 @@
 #version 460
 
 precision mediump float;
-const int iter = 32;
+const int iter = 3;
 uniform float num_params;
 uniform float a[iter];
 uniform float b[iter];
@@ -12,7 +12,8 @@ uniform float time;
 uniform vec3 camera_pos;
 
 vec3 light_dir = normalize(vec3(-20.0, -20.0, 5.0));
-const vec3 darker = vec3(0.00, 0.03, 0.23);
+//const vec3 darker = vec3(0.00, 0.03, 0.23);
+const vec3 darker = vec3(0.28, 0.33, 0.73);
 const vec3 brighter = vec3(0.48, 0.54, 0.96);
 
 const vec3 sun_colour = vec3(1.0, 1.0, 1.0);
@@ -22,6 +23,7 @@ const float sun_intensity = 0.9;
 // Angle to the normal vector beyond which the light is totally reflected.
 const float total_reflection_angle = 0.837758;
 
+in vec2 vert_vs;
 in vec3 water_surface;
 out vec4 color;
 
@@ -39,15 +41,20 @@ float soft_sun(float angle) {
 }
 
 void main() {
-    float partial_x = 0.0;
-    float partial_y = 0.0;
+    vec3 partial_x = vec3(1.0, 0.0, 0.0);
+    vec3 partial_y = vec3(0.0, 1.0, 0.0);
 
     for (int i = 0; i < iter; i++) {
-        partial_x += a[i] * b[i] * cos(b[i] * water_surface.x + c[i] * water_surface.y + d[i] * time);
-        partial_y += a[i] * c[i] * cos(b[i] * water_surface.x + c[i] * water_surface.y + d[i] * time);
+        partial_x.x += a[i] * b[i] * cos(b[i] * vert_vs.x + c[i] * vert_vs.y + d[i] * time);
+        partial_x.y += a[i] * b[i] * cos(b[i] * vert_vs.x + c[i] * vert_vs.y + d[i] * time);
+        partial_x.z -= a[i] * b[i] * sin(b[i] * vert_vs.x + c[i] * vert_vs.y + d[i] * time);
+
+        partial_x.x += a[i] * c[i] * cos(b[i] * vert_vs.x + c[i] * vert_vs.y + d[i] * time);
+        partial_x.y += a[i] * c[i] * cos(b[i] * vert_vs.x + c[i] * vert_vs.y + d[i] * time);
+        partial_x.z -= a[i] * c[i] * sin(b[i] * vert_vs.x + c[i] * vert_vs.y + d[i] * time);    
     }
 
-    vec3 normal = normalize(vec3(-partial_x, -partial_y, 1.0));
+    vec3 normal = normalize(cross(partial_x, partial_y));
     
     // Water shading
     float light = dot(normal, light_dir);
